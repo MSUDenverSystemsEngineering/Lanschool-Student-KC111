@@ -1,139 +1,31 @@
-<#
-.SYNOPSIS
-	Displays a graphical console to browse the help for the App Deployment Toolkit functions
-    # LICENSE #
-    PowerShell App Deployment Toolkit - Provides a set of functions to perform common application deployment tasks on Windows.
-    Copyright (C) 2017 - Sean Lillis, Dan Cunningham, Muhammad Mashwani, Aman Motazedian.
-    This program is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-    You should have received a copy of the GNU Lesser General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
-.DESCRIPTION
-	Displays a graphical console to browse the help for the App Deployment Toolkit functions
-.EXAMPLE
-	AppDeployToolkitHelp.ps1
-.NOTES
-.LINK
-	http://psappdeploytoolkit.com
-#>
+$Scripts = Get-ChildItem (Split-Path $PSScriptRoot -Parent) -Filter '*.ps1'
 
-##*===============================================
-##* VARIABLE DECLARATION
-##*===============================================
-
-## Variables: Script
-[string]$appDeployToolkitHelpName = 'PSAppDeployToolkitHelp'
-[string]$appDeployHelpScriptFriendlyName = 'App Deploy Toolkit Help'
-[version]$appDeployHelpScriptVersion = [version]'3.8.3'
-[string]$appDeployHelpScriptDate = '30/09/2020'
-
-## Variables: Environment
-[string]$scriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
-#  Dot source the App Deploy Toolkit Functions
-. "$scriptDirectory\AppDeployToolkitMain.ps1" -DisableLogging
-. "$scriptDirectory\AppDeployToolkitExtensions.ps1"
-##*===============================================
-##* END VARIABLE DECLARATION
-##*===============================================
-
-##*===============================================
-##* FUNCTION LISTINGS
-##*===============================================
-
-Function Show-HelpConsole {
-	## Import the Assemblies
-	Add-Type -AssemblyName 'System.Windows.Forms' -ErrorAction 'Stop'
-	Add-Type -AssemblyName System.Drawing -ErrorAction 'Stop'
-
-	## Form Objects
-	$HelpForm = New-Object -TypeName 'System.Windows.Forms.Form'
-	$HelpListBox = New-Object -TypeName 'System.Windows.Forms.ListBox'
-	$HelpTextBox = New-Object -TypeName 'System.Windows.Forms.RichTextBox'
-	$InitialFormWindowState = New-Object -TypeName 'System.Windows.Forms.FormWindowState'
-
-	## Form Code
-	$System_Drawing_Size = New-Object -TypeName 'System.Drawing.Size'
-	$System_Drawing_Size.Height = 665
-	$System_Drawing_Size.Width = 957
-	$HelpForm.ClientSize = $System_Drawing_Size
-	$HelpForm.DataBindings.DefaultDataSourceUpdateMode = 0
-	$HelpForm.Name = 'HelpForm'
-	$HelpForm.Text = 'PowerShell App Deployment Toolkit Help Console'
-	$HelpForm.WindowState = 'Normal'
-	$HelpForm.ShowInTaskbar = $true
-	$HelpForm.FormBorderStyle = 'Fixed3D'
-	$HelpForm.MaximizeBox = $false
-	$HelpForm.Icon = New-Object -TypeName 'System.Drawing.Icon' -ArgumentList $AppDeployLogoIcon
-	$HelpListBox.Anchor = 7
-	$HelpListBox.BorderStyle = 1
-	$HelpListBox.DataBindings.DefaultDataSourceUpdateMode = 0
-	$HelpListBox.Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList ('Microsoft Sans Serif', 9.75, 1, 3, 1)
-	$HelpListBox.FormattingEnabled = $true
-	$HelpListBox.ItemHeight = 16
-	$System_Drawing_Point = New-Object -TypeName 'System.Drawing.Point'
-	$System_Drawing_Point.X = 0
-	$System_Drawing_Point.Y = 0
-	$HelpListBox.Location = $System_Drawing_Point
-	$HelpListBox.Name = 'HelpListBox'
-	$System_Drawing_Size = New-Object -TypeName 'System.Drawing.Size'
-	$System_Drawing_Size.Height = 658
-	$System_Drawing_Size.Width = 271
-	$HelpListBox.Size = $System_Drawing_Size
-	$HelpListBox.Sorted = $true
-	$HelpListBox.TabIndex = 2
-	$HelpListBox.add_SelectedIndexChanged({ $HelpTextBox.Text = Get-Help -Name $HelpListBox.SelectedItem -Full | Out-String })
-	$helpFunctions = Get-Command -CommandType 'Function' | Where-Object { ($_.HelpUri -match 'psappdeploytoolkit') -and ($_.Definition -notmatch 'internal script function') } | Select-Object -ExpandProperty Name
-	$null = $HelpListBox.Items.AddRange($helpFunctions)
-	$HelpForm.Controls.Add($HelpListBox)
-	$HelpTextBox.Anchor = 11
-	$HelpTextBox.BorderStyle = 1
-	$HelpTextBox.DataBindings.DefaultDataSourceUpdateMode = 0
-	$HelpTextBox.Font = New-Object -TypeName 'System.Drawing.Font' -ArgumentList ('Microsoft Sans Serif', 8.5, 0, 3, 1)
-	$HelpTextBox.ForeColor = [System.Drawing.Color]::FromArgb(255, 0, 0, 0)
-	$System_Drawing_Point = New-Object -TypeName System.Drawing.Point
-	$System_Drawing_Point.X = 277
-	$System_Drawing_Point.Y = 0
-	$HelpTextBox.Location = $System_Drawing_Point
-	$HelpTextBox.Name = 'HelpTextBox'
-	$HelpTextBox.ReadOnly = $True
-	$System_Drawing_Size = New-Object -TypeName 'System.Drawing.Size'
-	$System_Drawing_Size.Height = 658
-	$System_Drawing_Size.Width = 680
-	$HelpTextBox.Size = $System_Drawing_Size
-	$HelpTextBox.TabIndex = 1
-	$HelpTextBox.Text = ''
-	$HelpForm.Controls.Add($HelpTextBox)
-
-	## Save the initial state of the form
-	$InitialFormWindowState = $HelpForm.WindowState
-	## Init the OnLoad event to correct the initial state of the form
-	$HelpForm.add_Load($OnLoadForm_StateCorrection)
-	## Show the Form
-	$null = $HelpForm.ShowDialog()
+ if ($Scripts.count -gt 0) {
+     Describe 'PSScriptAnalyzer analysis' {
+        It "<Path> Should not violate: <IncludeRule>"`
+        -TestCases @(
+            Foreach ($script in $Scripts) {
+                Foreach ($rule in (Get-ScriptAnalyzerRule)) {
+                    @{
+                        IncludeRule = $rule.RuleName
+                        Path        = $script.FullName
+                    }
+                }
+            }
+        ) {
+            param($IncludeRule, $Path)
+            Invoke-ScriptAnalyzer -Path "$Path"`
+            -IncludeRule $IncludeRule |
+            Should -BeNullOrEmpty
+        }
+    }
 }
-
-##*===============================================
-##* END FUNCTION LISTINGS
-##*===============================================
-
-##*===============================================
-##* SCRIPT BODY
-##*===============================================
-
-Write-Log -Message "Load [$appDeployHelpScriptFriendlyName] console..." -Source $appDeployToolkitHelpName
-
-## Show the help console
-Show-HelpConsole
-
-Write-Log -Message "[$appDeployHelpScriptFriendlyName] console closed." -Source $appDeployToolkitHelpName
-
-##*===============================================
-##* END SCRIPT BODY
-##*===============================================
 
 # SIG # Begin signature block
 # MIIf2QYJKoZIhvcNAQcCoIIfyjCCH8YCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC/rIQy+cUx5hxW
-# /5kp/ZRmlWKTUlopMKnVgSTcP54CT6CCGZwwggWuMIIElqADAgECAhAHA3HRD3la
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCKmAODkOwGhXD4
+# 5Kr/8XssQYy0s8aQ/2cZsR6b6Oia0KCCGZwwggWuMIIElqADAgECAhAHA3HRD3la
 # QHGZK5QHYpviMA0GCSqGSIb3DQEBCwUAMHwxCzAJBgNVBAYTAlVTMQswCQYDVQQI
 # EwJNSTESMBAGA1UEBxMJQW5uIEFyYm9yMRIwEAYDVQQKEwlJbnRlcm5ldDIxETAP
 # BgNVBAsTCEluQ29tbW9uMSUwIwYDVQQDExxJbkNvbW1vbiBSU0EgQ29kZSBTaWdu
@@ -275,29 +167,29 @@ Write-Log -Message "[$appDeployHelpScriptFriendlyName] console closed." -Source 
 # CxMISW5Db21tb24xJTAjBgNVBAMTHEluQ29tbW9uIFJTQSBDb2RlIFNpZ25pbmcg
 # Q0ECEAcDcdEPeVpAcZkrlAdim+IwDQYJYIZIAWUDBAIBBQCggYQwGAYKKwYBBAGC
 # NwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgor
-# BgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQxIgQgcsKg45Vv
-# BHfNk2IvehN2OIZSg14qMQf90PF5kZOQ3nQwDQYJKoZIhvcNAQEBBQAEggEAC4Mc
-# fqsShsVL/4WiOfg6aDPceHJ4oIpUGtZcIzS93cKKbSVyxuAz8i6iLoOK1jmO8GVj
-# +QeyGzXx4FmKDm5h/7iJOhFT/i7tYCKg1mvMbk4YlH5jahjIfBeq3tPY1Gmmn73C
-# vUf8u5CQRAZ0WOZ1Oh8MUl4l4CiTY2yvPOgn93BQzZD8R8BTe8ZaePbRZkTOe0Y0
-# vx7wwN87wxV/N1WuP0qs05B2qXJIreQm3SNo77qL0xCpLwGncpYi8TCgkHALZK7z
-# F1YfY/mxrhQpliUq8ScbazJcJRldP777b0DpZLIh+BQ8Peojs6FlPNfDmkLe8frl
-# otX8BL8tKwOdWSuuYqGCA0wwggNIBgkqhkiG9w0BCQYxggM5MIIDNQIBATCBkjB9
+# BgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQxIgQgGW09NkFY
+# b+Y2U3pe6i7yfgF38cqdpqOFbYTMu2Ck5rQwDQYJKoZIhvcNAQEBBQAEggEAufQS
+# vbM6a1neL3vX05MSMw6jjJgaHzn59XcufP6ECElnwsPMpzzz+pjgBZ87Oz4oEWEO
+# PPvnR5hEbnWftkO0Gk9dFCn/J83Zad8NSw/ybSGhzfbd2phZ2H1jTYRLeikLRIG7
+# l/pYaFR0HYXiLLTxvfwwKuf2S6YPuW05lL5wZCOpeEZ0wGAoEVpbBfcKE2lvvlH9
+# jT/FPRi0P72SPqra9pm7gtF9hsEZ0spQVqD6Sfo36jeHH9+bKXNLy0e2iIN7TOmc
+# 897jxFFnWfqVMKKQEDH/2PXaunbnuYBmevkn8/715WzCRbRVsjqvMG/3bYaXQfwd
+# jf4eJMlw6ifYpjl6gaGCA0wwggNIBgkqhkiG9w0BCQYxggM5MIIDNQIBATCBkjB9
 # MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYD
 # VQQHEwdTYWxmb3JkMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0ZWQxJTAjBgNVBAMT
 # HFNlY3RpZ28gUlNBIFRpbWUgU3RhbXBpbmcgQ0ECEQCMd6AAj/TRsMY9nzpIg41r
 # MA0GCWCGSAFlAwQCAgUAoHkwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkq
-# hkiG9w0BCQUxDxcNMjAxMjE3MTkwNDQ3WjA/BgkqhkiG9w0BCQQxMgQwxpW0Ut9+
-# fgoscUIphw2xq8I/DaN7kX0dWAt2WoFrWMirvPenRjQ2SnM3/IoDvOklMA0GCSqG
-# SIb3DQEBAQUABIICAH30m7KXobYiWdTvKw0Isgk2miwbKj8M95wwGUAXisyBPtAc
-# lQ/eCuS+SGeRI8+dDayZdsrYAbtEW8nC6Xdadvl58G481D/pVk8xUavWUGSslpua
-# LKESSnr720wv952jhYSkFJWnQvIT/S3XkrSoE3wA8VZdVw9VkXUwG5Z+crE4LBRz
-# pBbSkRNx44hDX9CmqWt/N77WlMfE7IDIXbildnz3Nbgc8YdfYPQikpwAIg0nJGH4
-# DB7Z6TL5FDc/GSNAIX5ufyohsuRL2gtq9WPdtitmBnvi+Na3M+2Sc9jDujEtbmnb
-# oxIkYUXxw2HvoviA6bOkDmhgPmjNqu3HEuWbp1tsMYkcLdSnX/BAS3GC3MEriiPG
-# DvIpf3muzmVGIl5sJLjT8MDDfzhTkfuFGNfglmNsaTwEOoPOrEHXbki7qmQqeX9q
-# oSFbKT73KYEGL7lvBNWGC+qeayrsU/KCWksyAiiLUBeO3YiidyAd35yKz4uE7Ve7
-# lCZ5xXsloEnCRUoUGPGIdka5iYysDn93gwuDAVGKlaEGLVtSEY+ouiPqmrMfpsa1
-# tYfyFfYz56Lq32oRO5OXDf08IrfQkMbulYHTBj4xvtnBBh8DyBEhEUX1/XFEm2NB
-# T/Xnm0UvsClyKrbPZ8TIbOgAnyoXiY5YwPGcMq6+1cT2gO8fQrFsxRwODVel
+# hkiG9w0BCQUxDxcNMjAxMjE3MTkwMDE2WjA/BgkqhkiG9w0BCQQxMgQwSUAqvTl+
+# cqmC4EsNa1eamFc2v2Kd/JPjVLe5xhkQdpisq7DsV8V+VFU2o9tubCaMMA0GCSqG
+# SIb3DQEBAQUABIICAIiU7fWe5FLgNdXOF9iPDZf91YihHifiIDrj8W9f0+tebMtn
+# L6X02UpjhQ0RQtzuYnRP/Ajd4iImD4RQ4tluFCYke5t2o3/jLgDRR4oWf4k7lr0D
+# LdDjRpNNsQJhHOBDGPH/hoZc9wXT3jTz0NGFBwGNlqKcHYV7ZU2zqjndUPUf2Cxp
+# 7TegXeDzovdFzwaJP/c7AlF+NmV5w2izw/5YJZOJRv1TbLGWM+sqF8FnTHMLU42f
+# QOugsYybznjNNlL4rwt2xxA/hAPeVwiZ4RCI81UEN3p5BEhufDIR55Kth1O8yn+H
+# 4K0tqHJtnUQLRQr0Irtzzym7TP5LDSx0iT9Ca1y6sJNfc6Q6rx6m8LpPxW0+l4ZK
+# ZeSAkFZdqhfTakKzn4uxUVIFR5+xd5xk/IQkDEW4tSAG0VuMcxwadlVBYYXeD+Qm
+# eJR2NTxo6RKpIpKYcTvuR0fWlFJp0sEHF0ii2pQLMiuBMtii0PA9lfSkwmbAf4Cn
+# taX9uN+5ZMpIXom0Fy3B5qu850/LCi1WekeJqg+vyuPj6hlbiRvbtgq02l6FbNVJ
+# loz27H7mP6LuSJ9l91bTCUMiqSRo0orPa2vMLAD4z1Qkh0Ymm6Batq3So9rAva81
+# sicUn95lHnlIXDT06tMXbB1ubRwyZX6hyMYNsVRVKx85qdr3fSRG+eNqExi+
 # SIG # End signature block
