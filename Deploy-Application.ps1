@@ -141,7 +141,7 @@ Try {
 		}
 
 		## <Perform Installation tasks here>
-		$exitCode = Execute-MSI -Action 'Install' -Path "$dirFiles\Student.msi" -AddParameters '/qn ADVANCE_OPTIONS=1 SECURE_MODE=1 PASSWORD=MSUTesting PASSWORD_CONFIRM=MSUTesting CHANNEL=347'
+		$exitCode = Execute-MSI -Action 'Install' -Path "$dirFiles\Student.msi" -AddParameters '/qn ADVANCE_OPTIONS=1 SECURE_MODE=1 PASSWORD=KC111 PASSWORD_CONFIRM=KC111 CHANNEL=111'
 		If (($exitCode.ExitCode -ne "0") -and ($mainExitCode -ne "3010")) {$mainExitCode =$exitCode.ExitCode }
 		##*===============================================
 		##* POST-INSTALLATION
