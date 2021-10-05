@@ -67,7 +67,7 @@ Try {
 	## Variables: Application
 	[string]$appVendor = 'Lenvo'
 	[string]$appName = 'Lanschool'
-	[string]$appVersion = 'v9.0.1.154'
+	[string]$appVersion = 'v8.0.1.154'
 	[string]$appArch = 'x86'
 	[string]$appLang = 'EN'
 	[string]$appRevision = '01'
